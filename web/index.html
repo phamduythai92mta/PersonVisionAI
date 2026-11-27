@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Phát Hiện Người Trong Video</title>
+  <title>PersonVision AI — Video Person Detector</title>
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
@@ -21,7 +21,7 @@
         </div>
         <div>
           <div class="brand-title">PersonVision AI</div>
-          <div class="brand-sub">Phát hiện người trong video</div>
+          <div class="brand-sub">Video Person Detector</div>
         </div>
       </div>
 
@@ -32,7 +32,7 @@
             <circle cx="12" cy="10" r="3"/>
             <path d="M7 18a5 5 0 0 1 10 0"/>
           </svg>
-          <span>Quét Video</span>
+          <span>Scan Videos</span>
           <span id="nav-scan-dot" class="live-dot hidden"></span>
         </button>
 
@@ -42,7 +42,7 @@
             <path d="M3 3v5h5"/>
             <path d="M12 7v5l3 2"/>
           </svg>
-          <span>Lịch Sử &amp; Kết Quả</span>
+          <span>History &amp; Results</span>
           <span id="nav-history-badge" class="nav-badge">0</span>
         </button>
 
@@ -51,22 +51,22 @@
             <circle cx="12" cy="12" r="3"/>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
           </svg>
-          <span>Cài Đặt &amp; Dữ Liệu</span>
+          <span>Settings &amp; Storage</span>
         </button>
       </nav>
 
       <div class="sidebar-stats">
-        <div class="sidebar-stats-title">Tổng quan đã lưu</div>
+        <div class="sidebar-stats-title">Saved Overview</div>
         <div class="mini-stat-row">
-          <span>Video đã quét</span>
+          <span>Scanned Videos</span>
           <strong id="side-total-videos">0</strong>
         </div>
         <div class="mini-stat-row">
-          <span>Video có người</span>
+          <span>Videos with People</span>
           <strong id="side-person-videos" class="text-emerald">0</strong>
         </div>
         <div class="mini-stat-row">
-          <span>Khoảnh khắc chụp</span>
+          <span>Captured Moments</span>
           <strong id="side-total-detections">0</strong>
         </div>
       </div>
@@ -82,26 +82,26 @@
       <section id="tab-scan" class="tab-panel active">
         <header class="page-header">
           <div>
-            <h1>Quét Thư Mục Video</h1>
-            <p class="subtitle">Chọn thư mục chứa video để AI tự động nhận diện người, ghi nhận mốc thời gian và chụp lại hình ảnh.</p>
+            <h1>Scan Video Folder</h1>
+            <p class="subtitle">Select a folder containing videos to automatically detect people, log exact timestamps, and capture annotated snapshots.</p>
           </div>
         </header>
 
         <div class="card scan-setup-card">
           <div class="folder-picker-block">
-            <label class="field-label" for="folder-input">Thư mục chứa video</label>
+            <label class="field-label" for="folder-input">Video Folder Path</label>
             <div class="folder-input-row">
               <input
                 id="folder-input"
                 type="text"
                 class="text-input"
-                placeholder="Ví dụ: D:\Camera\PhongKhach hoặc nhấn Chọn thư mục..."
+                placeholder="e.g., D:\Cameras\FrontGate or click Browse Folder..."
               />
               <button id="btn-browse-folder" class="btn btn-secondary">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
                 </svg>
-                Chọn thư mục...
+                Browse Folder...
               </button>
             </div>
             <div id="folder-preview" class="folder-preview hidden"></div>
@@ -109,41 +109,41 @@
 
           <div class="options-grid">
             <div class="option-box">
-              <label class="field-label" for="opt-interval">Tần suất kiểm tra khung hình</label>
+              <label class="field-label" for="opt-interval">Frame Sampling Interval</label>
               <select id="opt-interval" class="select-input">
-                <option value="0.5">Mỗi 0.5 giây (Rất kỹ)</option>
-                <option value="1" selected>Mỗi 1 giây (Chuẩn · Khuyên dùng)</option>
-                <option value="2">Mỗi 2 giây (Nhanh)</option>
-                <option value="5">Mỗi 5 giây (Siêu nhanh)</option>
+                <option value="0.5">Every 0.5s (Thorough)</option>
+                <option value="1" selected>Every 1.0s (Balanced · Recommended)</option>
+                <option value="2">Every 2.0s (Fast)</option>
+                <option value="5">Every 5.0s (Ultra Fast)</option>
               </select>
             </div>
 
             <div class="option-box">
               <label class="field-label" for="opt-confidence">
-                Độ tin cậy tối thiểu: <strong id="opt-confidence-val">45%</strong>
+                Minimum Confidence: <strong id="opt-confidence-val">45%</strong>
               </label>
               <input id="opt-confidence" type="range" min="25" max="85" step="5" value="45" class="range-input" />
             </div>
 
             <div class="option-box">
-              <label class="field-label" for="opt-merge-gap">Gộp khoảnh khắc liên tiếp</label>
+              <label class="field-label" for="opt-merge-gap">Merge Consecutive Detections</label>
               <select id="opt-merge-gap" class="select-input">
-                <option value="0">Không gộp (Chụp mọi khung hình)</option>
-                <option value="2">Gộp trong 2 giây</option>
-                <option value="3" selected>Gộp trong 3 giây (Gọn đẹp)</option>
-                <option value="5">Gộp trong 5 giây</option>
-                <option value="10">Gộp trong 10 giây</option>
+                <option value="0">Disabled (Capture every frame)</option>
+                <option value="2">Within 2 seconds</option>
+                <option value="3" selected>Within 3 seconds (Recommended)</option>
+                <option value="5">Within 5 seconds</option>
+                <option value="10">Within 10 seconds</option>
               </select>
             </div>
 
             <div class="option-box toggles-box">
               <label class="checkbox-row">
                 <input id="opt-recursive" type="checkbox" checked />
-                <span>Quét cả thư mục con bên trong</span>
+                <span>Include subfolders recursively</span>
               </label>
               <label class="checkbox-row">
                 <input id="opt-skip-scanned" type="checkbox" checked />
-                <span>Không quét lại video đã quét (trùng tên trong lịch sử)</span>
+                <span>Skip previously scanned videos (by filename in history)</span>
               </label>
             </div>
           </div>
@@ -153,12 +153,12 @@
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <polygon points="6,4 20,12 6,20"/>
               </svg>
-              Bắt đầu quét ngay
+              Start Scan
             </button>
 
             <div id="scan-running-controls" class="running-controls hidden">
-              <button id="btn-pause-scan" class="btn btn-warning">Tạm dừng</button>
-              <button id="btn-stop-scan" class="btn btn-danger">Dừng quét</button>
+              <button id="btn-pause-scan" class="btn btn-warning">Pause</button>
+              <button id="btn-stop-scan" class="btn btn-danger">Stop Scan</button>
             </div>
           </div>
         </div>
@@ -169,21 +169,21 @@
         <div id="scan-progress-card" class="card progress-card hidden">
           <div class="progress-header">
             <div>
-              <span id="scan-status-pill" class="status-pill status-running">Đang quét</span>
-              <h3 id="progress-current-video">Đang chuẩn bị...</h3>
+              <span id="scan-status-pill" class="status-pill status-running">Scanning</span>
+              <h3 id="progress-current-video">Preparing...</h3>
               <p id="progress-current-path" class="muted-path"></p>
             </div>
             <div class="row-gap">
               <div class="progress-elapsed">
-                Thời gian: <strong id="progress-elapsed">00:00</strong>
+                Elapsed: <strong id="progress-elapsed">00:00</strong>
               </div>
-              <button id="btn-reset-scan" class="btn btn-secondary btn-sm hidden">Làm mới màn hình quét</button>
+              <button id="btn-reset-scan" class="btn btn-secondary btn-sm hidden">Reset Scan Screen</button>
             </div>
           </div>
 
           <div class="progress-bars">
             <div class="bar-label">
-              <span>Tiến độ tổng thể (<span id="progress-video-count">0 / 0</span> video)</span>
+              <span>Overall Progress (<span id="progress-video-count">0 / 0</span> videos)</span>
               <strong id="progress-overall-pct">0%</strong>
             </div>
             <div class="progress-track">
@@ -191,7 +191,7 @@
             </div>
 
             <div class="bar-label mt-sm">
-              <span>Video hiện tại</span>
+              <span>Current Video</span>
               <strong id="progress-video-pct">0%</strong>
             </div>
             <div class="progress-track thin">
@@ -201,21 +201,21 @@
 
           <div class="live-kpis">
             <div class="kpi-pill">
-              <span>Video đã xong</span>
+              <span>Processed</span>
               <strong id="live-processed">0</strong>
             </div>
             <div class="kpi-pill">
-              <span>Video có người</span>
+              <span>Videos with People</span>
               <strong id="live-with-person" class="text-emerald">0</strong>
             </div>
             <div class="kpi-pill">
-              <span>Khoảnh khắc phát hiện</span>
+              <span>Detections Captured</span>
               <strong id="live-detections" class="text-sky">0</strong>
             </div>
           </div>
 
           <div id="live-feed-wrap" class="live-feed-wrap hidden">
-            <div class="live-feed-title">Ảnh người vừa phát hiện (nhấn để xem video ngay tại thời điểm đó)</div>
+            <div class="live-feed-title">Live Detections (click any card to jump straight to that timestamp)</div>
             <div id="live-feed-grid" class="live-feed-grid"></div>
           </div>
         </div>
@@ -225,30 +225,30 @@
       <section id="tab-history" class="tab-panel">
         <header class="page-header">
           <div>
-            <h1>Lịch Sử Quét &amp; Phát Hiện Người</h1>
-            <p class="subtitle">Xem lại toàn bộ video đã quét, thời điểm xuất hiện người, hình ảnh đã chụp và bật phát lại ngay tại khoảnh khắc đó.</p>
+            <h1>Scan History &amp; Detections</h1>
+            <p class="subtitle">Review all scanned videos, inspect timestamps where people appeared, and play videos directly at any detected moment.</p>
           </div>
           <div class="header-actions">
-            <button id="btn-refresh-history" class="btn btn-secondary">Làm mới</button>
+            <button id="btn-refresh-history" class="btn btn-secondary">Refresh</button>
           </div>
         </header>
 
         <!-- History Filters -->
         <div class="card filter-bar">
           <div class="view-switcher" role="tablist">
-            <button class="view-tab active" data-view="videos">Theo Video</button>
-            <button class="view-tab" data-view="gallery">Thư Viện Ảnh</button>
-            <button class="view-tab" data-view="sessions">Các Lần Quét</button>
+            <button class="view-tab active" data-view="videos">By Video</button>
+            <button class="view-tab" data-view="gallery">Snapshot Gallery</button>
+            <button class="view-tab" data-view="sessions">Scan Sessions</button>
           </div>
 
           <div class="filter-controls">
-            <input id="history-search" type="text" class="text-input search-input" placeholder="Tìm tên video hoặc thư mục..." />
+            <input id="history-search" type="text" class="text-input search-input" placeholder="Search video name or path..." />
             <select id="history-session-filter" class="select-input session-select">
-              <option value="">Tất cả các lần quét</option>
+              <option value="">All scan sessions</option>
             </select>
             <label class="checkbox-pill">
               <input id="history-only-person" type="checkbox" />
-              <span>Chỉ hiện video có người</span>
+              <span>Only videos with people</span>
             </label>
           </div>
         </div>
@@ -257,8 +257,8 @@
         <div id="history-view-videos" class="history-split">
           <div class="card video-list-pane">
             <div class="pane-head">
-              <strong>Danh sách video đã quét</strong>
-              <span id="video-list-count" class="muted">0 video</span>
+              <strong>Scanned Videos</strong>
+              <span id="video-list-count" class="muted">0 videos</span>
             </div>
             <div id="video-list-container" class="video-list-scroll"></div>
           </div>
@@ -269,8 +269,8 @@
                 <rect x="2" y="4" width="20" height="16" rx="3"/>
                 <polygon points="10,8.5 16,12 10,15.5" fill="currentColor"/>
               </svg>
-              <h3>Chọn một video ở danh sách bên trái</h3>
-              <p>Xem chi tiết các mốc thời gian có người xuất hiện, hình ảnh đã chụp và phát lại trực tiếp trong ứng dụng.</p>
+              <h3>Select a video from the list</h3>
+              <p>Inspect detected timestamps, view annotated snapshots and close-up crops, and play the video right from any moment.</p>
             </div>
             <div id="video-detail-content" class="video-detail-content hidden"></div>
           </div>
@@ -291,43 +291,43 @@
       <section id="tab-settings" class="tab-panel">
         <header class="page-header">
           <div>
-            <h1>Cài Đặt &amp; Lưu Trữ Portable</h1>
-            <p class="subtitle">Quản lý vị trí lưu lịch sử, hình ảnh đã chụp và thông số mặc định khi chuyển ứng dụng sang máy khác.</p>
+            <h1>Settings &amp; Portable Storage</h1>
+            <p class="subtitle">Inspect local database storage, AI model status, and tips for transferring this portable app across machines.</p>
           </div>
         </header>
 
         <div class="settings-grid">
           <div class="card">
-            <h3>Thông tin dữ liệu &amp; Đóng gói Portable</h3>
+            <h3>Storage &amp; Portable Configuration</h3>
             <div class="info-rows">
               <div class="info-row">
-                <span>Chế độ lưu trữ</span>
+                <span>Storage Mode</span>
                 <strong id="info-portable-mode">-</strong>
               </div>
               <div class="info-row">
-                <span>Thư mục dữ liệu (SQLite + Ảnh chụp)</span>
+                <span>Data Directory (SQLite DB + Snapshots)</span>
                 <code id="info-data-dir" class="code-path">-</code>
               </div>
               <div class="info-row">
-                <span>Mô hình AI tích hợp</span>
-                <strong id="info-model-status">YOLO11n ONNX (Chạy Offline)</strong>
+                <span>Embedded AI Engine</span>
+                <strong id="info-model-status">YOLO11n ONNX (Offline CPU)</strong>
               </div>
             </div>
             <div class="mt-md row-gap">
-              <button id="btn-open-data-dir" class="btn btn-secondary">Mở thư mục dữ liệu</button>
-              <button id="btn-clear-history" class="btn btn-danger-outline">Xóa toàn bộ lịch sử</button>
+              <button id="btn-open-data-dir" class="btn btn-secondary">Open Data Folder</button>
+              <button id="btn-clear-history" class="btn btn-danger-outline">Clear All History</button>
             </div>
             <p class="help-note mt-md">
-              Mẹo di chuyển sang máy khác: Chỉ cần copy toàn bộ thư mục chứa ứng dụng sang USB hoặc máy Windows khác. Toàn bộ lịch sử quét và ảnh chụp trong thư mục <code>data</code> sẽ đi kèm cùng ứng dụng. Nếu video gốc đổi ổ đĩa trên máy mới, bạn có thể nhấn <strong>"Chọn lại file video"</strong> ngay trong trình phát để cập nhật đường dẫn.
+              Portable Transfer Tip: Copy the entire application folder to a USB drive or another Windows PC. All scan history and captured snapshots inside <code>data/</code> travel with the app. If original videos move to another drive on a new machine, click <strong>"Relocate Video File..."</strong> inside the player to update paths automatically.
             </p>
           </div>
 
           <div class="card">
-            <h3>Hướng dẫn nhanh</h3>
+            <h3>Quick Start Guide</h3>
             <ul class="guide-list">
-              <li><strong>Bước 1:</strong> Vào mục <strong>Quét Video</strong>, chọn thư mục chứa các file video (hỗ trợ MP4, AVI, MOV, MKV, WMV, FLV, WebM...).</li>
-              <li><strong>Bước 2:</strong> Nhấn <strong>Bắt đầu quét ngay</strong>. AI sẽ tự phân tích video theo từng giây, phát hiện người và chụp lại hình ảnh kèm khung đánh dấu.</li>
-              <li><strong>Bước 3:</strong> Vào <strong>Lịch Sử &amp; Kết Quả</strong> để xem video nào có người, ở phút/giây thứ mấy, và bấm trực tiếp vào ảnh hoặc mốc thời gian để <strong>bật phát lại video ngay tại đúng thời điểm đó</strong>.</li>
+              <li><strong>Step 1:</strong> Go to <strong>Scan Videos</strong> and choose a folder containing video files (MP4, AVI, MOV, MKV, WMV, FLV, WebM, and more).</li>
+              <li><strong>Step 2:</strong> Click <strong>Start Scan</strong>. The offline YOLO11n model analyzes sampled frames, logs timestamps, and captures annotated snapshots plus person close-ups.</li>
+              <li><strong>Step 3:</strong> Open <strong>History &amp; Results</strong> to review which videos had people, inspect exact timestamps, and click any snapshot to <strong>play the video right at that detected moment</strong>.</li>
             </ul>
           </div>
         </div>
@@ -341,13 +341,13 @@
     <div class="modal-dialog">
       <div class="modal-header">
         <div class="modal-title-wrap">
-          <h2 id="player-video-title">Tên video</h2>
+          <h2 id="player-video-title">Video Title</h2>
           <div id="player-video-meta" class="muted-path"></div>
         </div>
         <div class="modal-header-actions">
-          <button id="btn-player-open-external" class="btn btn-secondary btn-sm">Mở trình phát ngoài</button>
-          <button id="btn-player-open-folder" class="btn btn-secondary btn-sm">Mở thư mục</button>
-          <button id="btn-player-close" class="btn-icon" title="Đóng (Esc)">✕</button>
+          <button id="btn-player-open-external" class="btn btn-secondary btn-sm">Open External Player</button>
+          <button id="btn-player-open-folder" class="btn btn-secondary btn-sm">Show in Explorer</button>
+          <button id="btn-player-close" class="btn-icon" title="Close (Esc)">✕</button>
         </div>
       </div>
 
@@ -355,15 +355,15 @@
         <div class="player-stage-col">
           <div id="player-missing-banner" class="missing-banner hidden">
             <div>
-              <strong>Không tìm thấy file video gốc tại đường dẫn cũ</strong>
-              <p>Nếu bạn vừa chuyển ứng dụng sang máy tính khác hoặc đổi ổ đĩa, hãy chọn lại vị trí mới của video này.</p>
+              <strong>Original video file not found at its previous path</strong>
+              <p>If you moved this portable app to another PC or changed drive letters, select the video's new location.</p>
             </div>
-            <button id="btn-relocate-video" class="btn btn-primary btn-sm">Chọn lại file video...</button>
+            <button id="btn-relocate-video" class="btn btn-primary btn-sm">Relocate Video File...</button>
           </div>
 
           <div id="player-loading" class="player-loading hidden">
             <div class="spinner"></div>
-            <span id="player-loading-text">Đang chuẩn bị luồng video để phát...</span>
+            <span id="player-loading-text">Preparing video stream for playback...</span>
           </div>
 
           <div class="video-frame-wrap">
@@ -373,7 +373,7 @@
           <!-- Interactive Detection Timeline -->
           <div class="timeline-section">
             <div class="timeline-head">
-              <span>Mốc thời gian phát hiện người trên thanh thời lượng (nhấn để nhảy tới):</span>
+              <span>Detection timeline markers (click any marker to jump to that timestamp):</span>
               <strong id="player-current-time-label">00:00 / 00:00</strong>
             </div>
             <div id="player-timeline-bar" class="timeline-bar">
@@ -384,13 +384,13 @@
 
           <div class="player-controls-bar">
             <div class="row-gap">
-              <button id="btn-prev-det" class="btn btn-secondary btn-sm">⏮ Điểm trước</button>
+              <button id="btn-prev-det" class="btn btn-secondary btn-sm">⏮ Prev Detection</button>
               <button id="btn-seek-back" class="btn btn-secondary btn-sm">-5s</button>
               <button id="btn-seek-fwd" class="btn btn-secondary btn-sm">+5s</button>
-              <button id="btn-next-det" class="btn btn-secondary btn-sm">Điểm sau ⏭</button>
+              <button id="btn-next-det" class="btn btn-secondary btn-sm">Next Detection ⏭</button>
             </div>
             <div class="row-gap">
-              <label class="speed-label">Tốc độ:
+              <label class="speed-label">Speed:
                 <select id="player-speed" class="select-input select-sm">
                   <option value="0.5">0.5x</option>
                   <option value="1" selected>1.0x</option>
@@ -404,7 +404,7 @@
 
         <aside class="player-sidebar-col">
           <div class="player-sidebar-head">
-            <strong>Các khoảnh khắc có người</strong>
+            <strong>Detected Moments</strong>
             <span id="player-det-count" class="nav-badge">0</span>
           </div>
           <div id="player-det-list" class="player-det-list"></div>

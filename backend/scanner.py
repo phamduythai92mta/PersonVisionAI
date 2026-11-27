@@ -136,15 +136,15 @@ class ScannerManager:
     ) -> dict[str, Any]:
         folder = Path(folder_path).expanduser()
         if not folder.is_dir():
-            raise ValueError(f"Thư mục không tồn tại: {folder_path}")
+            raise ValueError(f"Folder does not exist: {folder_path}")
 
         with self._state_lock:
             if self._status["active"]:
-                raise RuntimeError("Đang có một tác vụ quét đang chạy.")
+                raise RuntimeError("A scan task is already running.")
 
         all_videos = discover_videos(folder, recursive=recursive)
         if not all_videos:
-            raise ValueError("Không tìm thấy file video hợp lệ nào trong thư mục đã chọn.")
+            raise ValueError("No supported video files were found in the selected folder.")
 
         already_names = self.db.get_already_scanned_names()
         matched_scanned = [v for v in all_videos if v.name.strip().lower() in already_names]
@@ -158,8 +158,8 @@ class ScannerManager:
 
         if not videos:
             notice = (
-                f"Đã có {skipped_count}/{len(all_videos)} video được quét trước đó "
-                f"(trùng tên trong lịch sử). Không có video mới nào cần quét lại."
+                f"Found {skipped_count}/{len(all_videos)} video(s) already scanned previously "
+                f"(matching filenames in history). Skipping re-scan."
             )
             with self._state_lock:
                 self._status = {
@@ -175,8 +175,8 @@ class ScannerManager:
         skip_notice = ""
         if skipped_count > 0:
             skip_notice = (
-                f"Đã bỏ qua {skipped_count}/{len(all_videos)} video đã được quét trước đó "
-                f"(trùng tên trong lịch sử). Đang quét {len(videos)} video mới."
+                f"Skipped {skipped_count}/{len(all_videos)} previously scanned video(s) "
+                f"(matching filenames in history). Scanning {len(videos)} new video(s)."
             )
 
         sample_interval_sec = max(0.2, min(30.0, float(sample_interval_sec)))
@@ -430,8 +430,8 @@ class ScannerManager:
             finish_notice = ""
             if skipped_cnt > 0:
                 finish_notice = (
-                    f"Đã bỏ qua {skipped_cnt}/{total_found} video đã được quét trước đó "
-                    f"(trùng tên trong lịch sử). Đã quét {processed_videos} video mới."
+                    f"Skipped {skipped_cnt}/{total_found} previously scanned video(s) "
+                    f"(matching filenames in history). Completed {processed_videos} new video(s)."
                 )
             self._status.update(
                 active=False,
@@ -460,7 +460,7 @@ class ScannerManager:
     ) -> int:
         cap = cv2.VideoCapture(_safe_cv2_path(video_path))
         if not cap.isOpened():
-            raise RuntimeError(f"Không thể mở file video: {video_path.name}")
+            raise RuntimeError(f"Unable to open video file: {video_path.name}")
 
         det_count = 0
         active_event: _ActiveEvent | None = None

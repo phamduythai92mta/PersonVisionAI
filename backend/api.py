@@ -52,7 +52,7 @@ def _pick_folder_tk(initial_dir: str = "") -> str | None:
     root.attributes("-topmost", True)
     try:
         chosen = filedialog.askdirectory(
-            title="Chọn thư mục chứa video để quét",
+            title="Select video folder to scan",
             initialdir=initial_dir if initial_dir and Path(initial_dir).is_dir() else None,
         )
         return chosen or None
@@ -70,7 +70,7 @@ def _pick_video_file_tk(initial_dir: str = "") -> str | None:
     root.attributes("-topmost", True)
     try:
         chosen = filedialog.askopenfilename(
-            title="Chọn lại file video đã di chuyển",
+            title="Locate moved video file",
             initialdir=initial_dir if initial_dir and Path(initial_dir).is_dir() else None,
             filetypes=[
                 ("Video files", "*.mp4 *.avi *.mov *.mkv *.wmv *.flv *.webm *.m4v *.ts *.mpg *.mpeg"),
@@ -88,7 +88,7 @@ def create_app(paths: AppPaths, window_holder: dict[str, Any] | None = None) -> 
     scanner = ScannerManager(paths=paths, db=db)
     playback = VideoPlaybackManager(cache_dir=paths.cache_dir)
 
-    app = FastAPI(title="AI Phát Hiện Người Trong Video")
+    app = FastAPI(title="PersonVision AI — Video Person Detector")
 
     app.state.paths = paths
     app.state.db = db
@@ -310,7 +310,7 @@ def create_app(paths: AppPaths, window_holder: dict[str, Any] | None = None) -> 
     def get_video_detail(video_id: int) -> dict[str, Any]:
         video = db.get_video(video_id)
         if not video:
-            raise HTTPException(status_code=404, detail="Không tìm thấy lịch sử video")
+            raise HTTPException(status_code=404, detail="Video history record not found")
         detections = db.list_detections(video_id=video_id)
         return {"video": video, "detections": detections}
 
@@ -332,10 +332,10 @@ def create_app(paths: AppPaths, window_holder: dict[str, Any] | None = None) -> 
     def relocate_video(video_id: int, payload: RelocateVideoPayload) -> dict[str, Any]:
         new_file = Path(payload.new_path)
         if not new_file.is_file():
-            raise HTTPException(status_code=400, detail="File video được chọn không tồn tại")
+            raise HTTPException(status_code=400, detail="Selected video file does not exist")
         updated = db.relocate_video(video_id, str(new_file))
         if not updated:
-            raise HTTPException(status_code=404, detail="Không tìm thấy bản ghi video")
+            raise HTTPException(status_code=404, detail="Video record not found")
         return updated
 
     @app.delete("/api/history/sessions/{session_id}")
@@ -351,7 +351,7 @@ def create_app(paths: AppPaths, window_holder: dict[str, Any] | None = None) -> 
     @app.delete("/api/history/all")
     def remove_all_history() -> dict[str, bool]:
         if scanner.is_running():
-            raise HTTPException(status_code=400, detail="Không thể xóa lịch sử khi đang quét")
+            raise HTTPException(status_code=400, detail="Cannot clear history while a scan is active")
         db.clear_all_history(paths.snapshots_dir)
         return {"ok": True}
 
@@ -362,7 +362,7 @@ def create_app(paths: AppPaths, window_holder: dict[str, Any] | None = None) -> 
     def prepare_video(video_id: int) -> dict[str, Any]:
         video = db.get_video(video_id)
         if not video:
-            raise HTTPException(status_code=404, detail="Không tìm thấy video")
+            raise HTTPException(status_code=404, detail="Video not found")
         vpath = Path(video["video_path"])
         if not vpath.is_file():
             return {
@@ -387,7 +387,7 @@ def create_app(paths: AppPaths, window_holder: dict[str, Any] | None = None) -> 
     def stream_video(video_id: int, request: Request):
         video = db.get_video(video_id)
         if not video:
-            raise HTTPException(status_code=404, detail="Không tìm thấy video")
+            raise HTTPException(status_code=404, detail="Video not found")
         vpath = Path(video["video_path"])
         try:
             playable_path, _ = playback.get_playable_path(vpath)
@@ -401,7 +401,7 @@ def create_app(paths: AppPaths, window_holder: dict[str, Any] | None = None) -> 
     def open_video_folder(video_id: int) -> dict[str, bool]:
         video = db.get_video(video_id)
         if not video:
-            raise HTTPException(status_code=404, detail="Không tìm thấy video")
+            raise HTTPException(status_code=404, detail="Video not found")
         vpath = Path(video["video_path"])
         if vpath.is_file():
             subprocess.Popen(["explorer", "/select,", str(vpath)])
@@ -410,16 +410,16 @@ def create_app(paths: AppPaths, window_holder: dict[str, Any] | None = None) -> 
         if folder.is_dir():
             os.startfile(str(folder))
             return {"ok": True}
-        raise HTTPException(status_code=404, detail="Không tìm thấy file hoặc thư mục trên ổ đĩa")
+        raise HTTPException(status_code=404, detail="File or folder not found on disk")
 
     @app.post("/api/video/{video_id}/open-external")
     def open_video_external(video_id: int) -> dict[str, bool]:
         video = db.get_video(video_id)
         if not video:
-            raise HTTPException(status_code=404, detail="Không tìm thấy video")
+            raise HTTPException(status_code=404, detail="Video not found")
         vpath = Path(video["video_path"])
         if not vpath.is_file():
-            raise HTTPException(status_code=404, detail="Không tìm thấy file video trên ổ đĩa")
+            raise HTTPException(status_code=404, detail="Video file not found on disk")
         os.startfile(str(vpath))
         return {"ok": True}
 

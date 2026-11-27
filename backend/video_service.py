@@ -146,7 +146,7 @@ class VideoPlaybackManager:
             if proc.returncode != 0 or not tmp_out.is_file():
                 tmp_out.unlink(missing_ok=True)
                 err_tail = proc.stderr.decode("utf-8", errors="ignore")[-400:]
-                raise RuntimeError(f"Không thể chuyển đổi video để phát trong ứng dụng: {err_tail}")
+                raise RuntimeError(f"Failed to transcode video for in-app playback: {err_tail}")
 
             tmp_out.replace(cached_mp4)
             return cached_mp4, True
@@ -155,7 +155,7 @@ class VideoPlaybackManager:
 def stream_video_range(file_path: Path, request: Request) -> StreamingResponse:
     """Stream a video file with full HTTP 206 byte-range support for instant seeking."""
     if not file_path.is_file():
-        raise HTTPException(status_code=404, detail="Không tìm thấy file video")
+        raise HTTPException(status_code=404, detail="Video file not found")
 
     file_size = file_path.stat().st_size
     content_type, _ = mimetypes.guess_type(str(file_path))

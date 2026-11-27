@@ -43,10 +43,10 @@
     if (!iso) return "-";
     try {
       const d = new Date(iso);
-      return d.toLocaleString("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
+      return d.toLocaleString("en-US", {
         year: "numeric",
+        month: "short",
+        day: "2-digit",
         hour: "2-digit",
         minute: "2-digit",
       });
@@ -88,7 +88,7 @@
     container.appendChild(el);
     setTimeout(() => {
       el.remove();
-    }, 4200);
+    }, 4500);
   }
 
   // ------------------------------------------------------------------
@@ -148,7 +148,7 @@
     document.getElementById("scan-running-controls").classList.add("hidden");
     document.getElementById("nav-scan-dot").classList.add("hidden");
 
-    document.getElementById("progress-current-video").textContent = "Đang chuẩn bị...";
+    document.getElementById("progress-current-video").textContent = "Preparing...";
     document.getElementById("progress-current-path").textContent = "";
     document.getElementById("progress-elapsed").textContent = "00:00";
     document.getElementById("progress-video-count").textContent = "0 / 0";
@@ -183,16 +183,16 @@
       updateSidebarStats(info.stats);
 
       const portableText = info.portable_mode
-        ? "Portable (Lưu ngay trong thư mục ứng dụng)"
-        : "AppData (Thư mục ứng dụng chỉ đọc)";
+        ? "Portable (Saved alongside application executable)"
+        : "AppData (Application directory is read-only)";
       document.getElementById("info-portable-mode").textContent = portableText;
       document.getElementById("info-data-dir").textContent = info.data_dir;
       document.getElementById("portable-pill").textContent = info.portable_mode
         ? "Portable Mode · Offline AI"
         : "Desktop Mode · Offline AI";
       document.getElementById("info-model-status").textContent = info.model_ready
-        ? "YOLO11n ONNX · Sẵn sàng (Offline)"
-        : "Thiếu file model YOLO11n!";
+        ? "YOLO11n ONNX · Ready (Offline)"
+        : "Missing YOLO11n model file!";
 
       const s = info.settings || {};
       if (s.sample_interval_sec !== undefined) {
@@ -241,7 +241,7 @@
         await previewFolder();
       }
     } catch (err) {
-      toast("Không thể mở hộp thoại chọn thư mục: " + err.message, true);
+      toast("Unable to open folder dialog: " + err.message, true);
     } finally {
       btn.disabled = false;
     }
@@ -260,30 +260,29 @@
       const res = await api(
         `/api/folder/preview?folder_path=${encodeURIComponent(folder)}&recursive=${recursive}`
       );
-      box.classList.remove("hidden");
-      box.classList.remove("invalid", "info");
+      box.classList.remove("hidden", "invalid", "info");
       if (!res.valid) {
         box.classList.add("invalid");
-        box.textContent = "Thư mục không tồn tại hoặc không thể truy cập.";
+        box.textContent = "Folder does not exist or cannot be accessed.";
       } else if (res.count === 0) {
         box.classList.add("invalid");
-        box.textContent = "Không tìm thấy file video nào (.mp4, .avi, .mov, .mkv, .wmv...) trong thư mục này.";
+        box.textContent = "No supported video files (.mp4, .avi, .mov, .mkv, .wmv...) found in this folder.";
       } else if (skipScanned && res.already_scanned_count > 0 && res.new_count === 0) {
         box.classList.add("info");
-        box.innerHTML = `Tìm thấy <strong>${res.count} video</strong> — Cả <strong>${res.already_scanned_count} video</strong> đã được quét trước đó (trùng tên trong lịch sử), sẽ không quét lại.`;
+        box.innerHTML = `Found <strong>${res.count} video(s)</strong> — All <strong>${res.already_scanned_count}</strong> already exist in scan history (matching filename) and will be skipped.`;
       } else if (skipScanned && res.already_scanned_count > 0) {
         const sampleNames = (res.sample || []).slice(0, 4).join(", ");
-        const more = res.new_count > 4 ? ` ... (+${res.new_count - 4} video mới khác)` : "";
-        box.innerHTML = `Tìm thấy <strong>${res.count} video</strong>: đã có <strong>${res.already_scanned_count} video</strong> được quét rồi (sẽ bỏ qua) · Còn <strong>${res.new_count} video mới</strong> sẽ quét: ${escapeHtml(sampleNames + more)}`;
+        const more = res.new_count > 4 ? ` ... (+${res.new_count - 4} more)` : "";
+        box.innerHTML = `Found <strong>${res.count} video(s)</strong>: <strong>${res.already_scanned_count}</strong> already scanned (will skip) · <strong>${res.new_count} new</strong> to scan: ${escapeHtml(sampleNames + more)}`;
       } else {
         const namesSource = skipScanned ? (res.sample || []) : [...(res.sample || []), ...(res.skipped_sample || [])];
         const sampleNames = namesSource.slice(0, 4).join(", ");
-        const more = res.count > 4 ? ` ... (+${res.count - 4} video khác)` : "";
+        const more = res.count > 4 ? ` ... (+${res.count - 4} more)` : "";
         const alreadyHint =
           !skipScanned && res.already_scanned_count > 0
-            ? ` (trong đó ${res.already_scanned_count} video đã có trong lịch sử nhưng đang tắt bỏ qua)`
+            ? ` (${res.already_scanned_count} already in history, re-scan enabled)`
             : "";
-        box.innerHTML = `Tìm thấy <strong>${res.count} video</strong>${alreadyHint}: ${escapeHtml(sampleNames + more)}`;
+        box.innerHTML = `Found <strong>${res.count} video(s)</strong>${alreadyHint}: ${escapeHtml(sampleNames + more)}`;
       }
     } catch {
       box.classList.add("hidden");
@@ -293,7 +292,7 @@
   async function startScan() {
     const folder = document.getElementById("folder-input").value.trim();
     if (!folder) {
-      toast("Vui lòng chọn thư mục chứa video trước khi quét.", true);
+      toast("Please select a video folder before scanning.", true);
       return;
     }
 
@@ -314,16 +313,16 @@
       if (status.status === "all_skipped") {
         state.wasScanning = false;
         renderScanStatus(status);
-        toast(status.skip_notice || `Đã có ${status.skipped_videos} video được quét trước đó.`);
+        toast(status.skip_notice || `${status.skipped_videos} video(s) were already scanned previously.`);
         return;
       }
       state.wasScanning = true;
       renderScanStatus(status);
       ensureScanPolling();
       if (status.skipped_videos > 0) {
-        toast(`Đã bỏ qua ${status.skipped_videos} video đã quét rồi. Bắt đầu quét ${status.total_videos} video mới!`);
+        toast(`Skipped ${status.skipped_videos} already-scanned video(s). Scanning ${status.total_videos} new video(s)!`);
       } else {
-        toast("Đã bắt đầu quét thư mục video!");
+        toast("Started scanning video folder!");
       }
     } catch (err) {
       toast(err.message, true);
@@ -355,14 +354,14 @@
           await previewFolder();
           if (st.status === "completed") {
             const skipPart =
-              st.skipped_videos > 0 ? ` (đã bỏ qua ${st.skipped_videos} video đã quét trước đó)` : "";
+              st.skipped_videos > 0 ? ` (skipped ${st.skipped_videos} already-scanned video(s))` : "";
             toast(
-              `Hoàn tất quét! Phát hiện ${st.total_detections} khoảnh khắc có người trong ${st.videos_with_person}/${st.total_videos} video mới${skipPart}.`
+              `Scan complete! Captured ${st.total_detections} person detection(s) across ${st.videos_with_person}/${st.total_videos} new video(s)${skipPart}.`
             );
           } else if (st.status === "cancelled") {
-            toast("Đã dừng quét. Các kết quả trước đó đã được lưu vào lịch sử.");
+            toast("Scan stopped. Completed results have been saved to history.");
           } else if (st.status === "error") {
-            toast("Lỗi khi quét: " + (st.error_message || "Không xác định"), true);
+            toast("Scan error: " + (st.error_message || "Unknown error"), true);
           }
         }
       }
@@ -402,25 +401,25 @@
     card.classList.remove("hidden");
 
     if (st.active) {
-      pauseBtn.textContent = st.paused ? "Tiếp tục" : "Tạm dừng";
+      pauseBtn.textContent = st.paused ? "Resume" : "Pause";
       state.wasScanning = true;
     }
 
     const pill = document.getElementById("scan-status-pill");
     const statusLabels = {
-      running: ["Đang quét AI...", "status-running"],
-      paused: ["Đang tạm dừng", "status-paused"],
-      stopping: ["Đang dừng...", "status-paused"],
-      completed: ["Đã hoàn tất", "status-completed"],
-      cancelled: ["Đã dừng giữa chừng", "status-cancelled"],
-      error: ["Có lỗi xảy ra", "status-error"],
+      running: ["Scanning AI...", "status-running"],
+      paused: ["Paused", "status-paused"],
+      stopping: ["Stopping...", "status-paused"],
+      completed: ["Completed", "status-completed"],
+      cancelled: ["Stopped", "status-cancelled"],
+      error: ["Error", "status-error"],
     };
-    const [label, cls] = statusLabels[st.status] || ["Chờ", "status-cancelled"];
+    const [label, cls] = statusLabels[st.status] || ["Idle", "status-cancelled"];
     pill.textContent = label;
     pill.className = `status-pill ${cls}`;
 
     document.getElementById("progress-current-video").textContent =
-      st.current_video_name || (st.status === "completed" ? "Đã quét xong tất cả video" : "Đang chuẩn bị...");
+      st.current_video_name || (st.status === "completed" ? "All videos processed" : "Preparing...");
     document.getElementById("progress-current-path").textContent = st.current_video_path || st.folder_path || "";
     document.getElementById("progress-elapsed").textContent = formatTime(st.elapsed_sec || 0);
 
@@ -446,13 +445,13 @@
           (d) => `
           <div class="det-card" data-open-video="${d.video_id}" data-seek="${d.timestamp_sec}">
             <div class="det-img-wrap">
-              <img src="/snapshots/${encodeURI(d.snapshot_path)}" alt="Ảnh phát hiện" loading="lazy" />
-              <span class="det-time-badge">⏱ ${escapeHtml(d.formatted_time)}</span>
+              <img src="/snapshots/${encodeURI(d.snapshot_path)}" alt="Detection snapshot" loading="lazy" />
+              <span class="det-time-badge">${escapeHtml(d.formatted_time)}</span>
               <div class="det-play-overlay"><div class="det-play-circle">▶</div></div>
             </div>
             <div class="det-card-body">
               <div class="det-card-top">
-                <strong class="text-emerald">${d.person_count} người</strong>
+                <strong class="text-emerald">${d.person_count} ${d.person_count === 1 ? "person" : "people"}</strong>
                 <span class="muted">${Math.round((d.max_confidence || 0) * 100)}%</span>
               </div>
               <div class="det-video-sub" title="${escapeHtml(d.video_name)}">${escapeHtml(d.video_name)}</div>
@@ -478,12 +477,12 @@
 
       const sel = document.getElementById("history-session-filter");
       const prevVal = sel.value;
-      sel.innerHTML = `<option value="">Tất cả các lần quét (${sessions.length})</option>`;
+      sel.innerHTML = `<option value="">All scan sessions (${sessions.length})</option>`;
       sessions.forEach((s) => {
         const folderShort = s.folder_path.split(/[\\/]/).filter(Boolean).pop() || s.folder_path;
         const opt = document.createElement("option");
         opt.value = String(s.id);
-        opt.textContent = `#${s.id} · ${folderShort} (${s.videos_with_person}/${s.total_videos} video có người) · ${formatDateTime(s.started_at)}`;
+        opt.textContent = `#${s.id} · ${folderShort} (${s.videos_with_person}/${s.total_videos} w/ people) · ${formatDateTime(s.started_at)}`;
         sel.appendChild(opt);
       });
       if (prevVal && Array.from(sel.options).some((o) => o.value === prevVal)) {
@@ -492,7 +491,7 @@
 
       await loadCurrentHistorySubView(sessions);
     } catch (err) {
-      toast("Không thể tải lịch sử: " + err.message, true);
+      toast("Unable to load scan history: " + err.message, true);
     }
   }
 
@@ -522,11 +521,11 @@
     if (search) params.set("search", search);
 
     const videos = await api(`/api/history/videos?${params.toString()}`);
-    document.getElementById("video-list-count").textContent = `${videos.length} video`;
+    document.getElementById("video-list-count").textContent = `${videos.length} video(s)`;
 
     const container = document.getElementById("video-list-container");
     if (videos.length === 0) {
-      container.innerHTML = `<div class="empty-state" style="padding: 36px 14px;"><p>Chưa có video nào khớp bộ lọc.</p></div>`;
+      container.innerHTML = `<div class="empty-state" style="padding: 36px 14px;"><p>No videos match the current filter.</p></div>`;
       if (!state.selectedVideoId) {
         showEmptyVideoDetail();
       }
@@ -539,11 +538,11 @@
         const thumbHtml = v.preview_snapshot
           ? `<img src="/snapshots/${encodeURI(v.preview_snapshot)}" alt="thumb" loading="lazy" />`
           : `<span>🎬</span>`;
-        let badgeHtml = `<span class="badge-none">Không có người</span>`;
+        let badgeHtml = `<span class="badge-none">No people detected</span>`;
         if (v.status === "error") {
-          badgeHtml = `<span class="badge-error">Lỗi đọc video</span>`;
+          badgeHtml = `<span class="badge-error">Read error</span>`;
         } else if (v.person_detected) {
-          badgeHtml = `<span class="badge-person">Có người · ${v.detection_count} mốc</span>`;
+          badgeHtml = `<span class="badge-person">Person · ${v.detection_count} moment(s)</span>`;
         }
         const dur = v.duration_sec > 0 ? formatTime(v.duration_sec) : "--:--";
         return `
@@ -553,18 +552,17 @@
               <div class="video-item-name" title="${escapeHtml(v.video_path)}">${escapeHtml(v.video_name)}</div>
               <div class="video-item-meta">
                 ${badgeHtml}
-                <span>⏱ ${dur}</span>
+                <span>${dur}</span>
               </div>
               <div class="video-item-meta">
                 <span>${formatDateTime(v.scanned_at)}</span>
-                ${!v.exists_on_disk ? `<span class="text-amber">· File đã di chuyển</span>` : ""}
+                ${!v.exists_on_disk ? `<span class="text-amber">· File moved</span>` : ""}
               </div>
             </div>
           </button>`;
       })
       .join("");
 
-    // Auto-select first video if none selected or current no longer in list
     if (!state.selectedVideoId || !videos.some((v) => v.id === state.selectedVideoId)) {
       selectVideoDetail(videos[0].id);
     } else {
@@ -603,26 +601,26 @@
                   const timeSpan =
                     d.end_sec > d.start_sec + 0.5
                       ? `${formatTime(d.start_sec)} → ${formatTime(d.end_sec)}`
-                      : `Tại ${formatTime(d.timestamp_sec)}`;
+                      : `At ${formatTime(d.timestamp_sec)}`;
                   return `
                     <div class="det-card">
                       <div class="det-img-wrap" data-open-video="${v.id}" data-seek="${d.timestamp_sec}">
-                        <img src="/snapshots/${encodeURI(d.snapshot_path)}" alt="Ảnh phát hiện lúc ${formatTime(d.timestamp_sec)}" loading="lazy" />
-                        <span class="det-time-badge">⏱ ${formatTime(d.timestamp_sec)}</span>
+                        <img src="/snapshots/${encodeURI(d.snapshot_path)}" alt="Detection at ${formatTime(d.timestamp_sec)}" loading="lazy" />
+                        <span class="det-time-badge">${formatTime(d.timestamp_sec)}</span>
                         <div class="det-play-overlay"><div class="det-play-circle">▶</div></div>
                       </div>
                       <div class="det-card-body">
                         <div class="det-card-top">
-                          <strong class="text-emerald">${d.person_count} người · ${Math.round(d.max_confidence * 100)}%</strong>
+                          <strong class="text-emerald">${d.person_count} ${d.person_count === 1 ? "person" : "people"} · ${Math.round(d.max_confidence * 100)}%</strong>
                           <span class="muted">${timeSpan}</span>
                         </div>
                         <div class="det-card-actions">
                           <button class="btn btn-primary btn-sm" data-open-video="${v.id}" data-seek="${d.timestamp_sec}">
-                            ▶ Xem từ ${formatTime(d.timestamp_sec)}
+                            ▶ Play at ${formatTime(d.timestamp_sec)}
                           </button>
                           ${
                             d.crop_path
-                              ? `<button class="btn btn-secondary btn-sm" data-toggle-crop="1" data-full="/snapshots/${encodeURI(d.snapshot_path)}" data-crop="/snapshots/${encodeURI(d.crop_path)}">Cận cảnh</button>`
+                              ? `<button class="btn btn-secondary btn-sm" data-toggle-crop="1" data-full="/snapshots/${encodeURI(d.snapshot_path)}" data-crop="/snapshots/${encodeURI(d.crop_path)}">Close-up</button>`
                               : ""
                           }
                         </div>
@@ -632,8 +630,8 @@
                 .join("")}
             </div>`
           : `<div class="empty-state" style="margin-top: 48px;">
-              <h3>Không phát hiện người trong video này</h3>
-              <p>${v.error_message ? escapeHtml(v.error_message) : "AI đã quét toàn bộ video nhưng không ghi nhận khung hình nào có người đạt ngưỡng tin cậy."}</p>
+              <h3>No people detected in this video</h3>
+              <p>${v.error_message ? escapeHtml(v.error_message) : "AI analyzed the video and found no frames exceeding the configured confidence threshold."}</p>
             </div>`;
 
       content.innerHTML = `
@@ -642,17 +640,17 @@
             <h2>${escapeHtml(v.video_name)}</h2>
             <p class="muted-path mt-sm">${escapeHtml(v.video_path)}</p>
             <div class="detail-meta-pills">
-              <span class="meta-chip">⏱ Thời lượng: ${formatTime(v.duration_sec)}</span>
-              <span class="meta-chip">📐 ${resInfo}</span>
-              <span class="meta-chip">💾 ${formatFileSize(v.file_size)}</span>
-              <span class="meta-chip">👤 ${dets.length} mốc phát hiện</span>
-              <span class="meta-chip">🕒 Quét: ${formatDateTime(v.scanned_at)}</span>
+              <span class="meta-chip">Duration: ${formatTime(v.duration_sec)}</span>
+              <span class="meta-chip">Resolution: ${resInfo}</span>
+              <span class="meta-chip">Size: ${formatFileSize(v.file_size)}</span>
+              <span class="meta-chip">${dets.length} detection(s)</span>
+              <span class="meta-chip">Scanned: ${formatDateTime(v.scanned_at)}</span>
             </div>
           </div>
           <div class="row-gap" style="flex-shrink:0;">
-            <button class="btn btn-primary btn-sm" data-open-video="${v.id}" data-seek="${firstSeek}">▶ Phát video</button>
-            <button class="btn btn-secondary btn-sm" data-open-folder="${v.id}">Mở thư mục</button>
-            <button class="btn btn-danger-outline btn-sm" data-delete-video="${v.id}">Xóa</button>
+            <button class="btn btn-primary btn-sm" data-open-video="${v.id}" data-seek="${firstSeek}">▶ Play Video</button>
+            <button class="btn btn-secondary btn-sm" data-open-folder="${v.id}">Show Folder</button>
+            <button class="btn btn-danger-outline btn-sm" data-delete-video="${v.id}">Delete</button>
           </div>
         </div>
         ${detCardsHtml}
@@ -672,7 +670,7 @@
     const grid = document.getElementById("gallery-grid");
 
     if (dets.length === 0) {
-      grid.innerHTML = `<div class="card empty-state" style="grid-column: 1 / -1; padding: 48px;"><h3>Chưa có ảnh phát hiện người nào</h3><p>Hãy quét một thư mục video để xem thư viện ảnh tại đây.</p></div>`;
+      grid.innerHTML = `<div class="card empty-state" style="grid-column: 1 / -1; padding: 48px;"><h3>No snapshots captured yet</h3><p>Scan a video folder to populate the detection gallery.</p></div>`;
       return;
     }
 
@@ -682,18 +680,18 @@
         <div class="det-card">
           <div class="det-img-wrap" data-open-video="${d.video_id}" data-seek="${d.timestamp_sec}">
             <img src="/snapshots/${encodeURI(d.snapshot_path)}" alt="${escapeHtml(d.video_name)}" loading="lazy" />
-            <span class="det-time-badge">⏱ ${formatTime(d.timestamp_sec)}</span>
+            <span class="det-time-badge">${formatTime(d.timestamp_sec)}</span>
             <div class="det-play-overlay"><div class="det-play-circle">▶</div></div>
           </div>
           <div class="det-card-body">
             <div class="det-card-top">
-              <strong class="text-emerald">${d.person_count} người · ${Math.round(d.max_confidence * 100)}%</strong>
+              <strong class="text-emerald">${d.person_count} ${d.person_count === 1 ? "person" : "people"} · ${Math.round(d.max_confidence * 100)}%</strong>
               <span class="muted">${formatTime(d.duration_sec)}</span>
             </div>
             <div class="det-video-sub" title="${escapeHtml(d.video_path)}">${escapeHtml(d.video_name)}</div>
             <div class="det-card-actions">
               <button class="btn btn-primary btn-sm" data-open-video="${d.video_id}" data-seek="${d.timestamp_sec}">
-                ▶ Xem lúc ${formatTime(d.timestamp_sec)}
+                ▶ Play at ${formatTime(d.timestamp_sec)}
               </button>
             </div>
           </div>
@@ -705,7 +703,7 @@
   function renderSessionsList(sessions) {
     const list = document.getElementById("sessions-list");
     if (!sessions || sessions.length === 0) {
-      list.innerHTML = `<div class="card empty-state" style="padding: 48px;"><h3>Chưa có lịch sử lần quét nào</h3></div>`;
+      list.innerHTML = `<div class="card empty-state" style="padding: 48px;"><h3>No scan sessions recorded yet</h3></div>`;
       return;
     }
 
@@ -716,16 +714,16 @@
           <div class="session-main">
             <h4>#${s.id} · ${escapeHtml(s.folder_path)}</h4>
             <div class="session-stats">
-              <span>🕒 ${formatDateTime(s.started_at)}</span>
-              <span>🎬 ${s.processed_videos}/${s.total_videos} video mới</span>
-              ${s.skipped_videos > 0 ? `<span>⏭ Đã bỏ qua ${s.skipped_videos} video đã quét</span>` : ""}
-              <span class="text-emerald">👤 ${s.videos_with_person} video có người (${s.total_detections} khoảnh khắc)</span>
-              <span>⚙️ Lấy mẫu ${s.sample_interval_sec}s · Ngưỡng ${Math.round(s.confidence_threshold * 100)}%</span>
+              <span>Started: ${formatDateTime(s.started_at)}</span>
+              <span>Scanned: ${s.processed_videos}/${s.total_videos} new video(s)</span>
+              ${s.skipped_videos > 0 ? `<span>Skipped ${s.skipped_videos} duplicate(s)</span>` : ""}
+              <span class="text-emerald">${s.videos_with_person} video(s) with people (${s.total_detections} moment(s))</span>
+              <span>Interval ${s.sample_interval_sec}s · Threshold ${Math.round(s.confidence_threshold * 100)}%</span>
             </div>
           </div>
           <div class="row-gap">
-            <button class="btn btn-secondary btn-sm" data-filter-session="${s.id}">Xem kết quả</button>
-            <button class="btn btn-danger-outline btn-sm" data-delete-session="${s.id}">Xóa lần quét</button>
+            <button class="btn btn-secondary btn-sm" data-filter-session="${s.id}">View Results</button>
+            <button class="btn btn-danger-outline btn-sm" data-delete-session="${s.id}">Delete Session</button>
           </div>
         </div>`
       )
@@ -745,7 +743,7 @@
     modal.classList.remove("hidden");
     missingBanner.classList.add("hidden");
     loadingEl.classList.remove("hidden");
-    loadingText.textContent = "Đang tải thông tin và chuẩn bị video...";
+    loadingText.textContent = "Loading video metadata and stream...";
 
     try {
       const detail = await api(`/api/history/videos/${videoId}`);
@@ -759,7 +757,6 @@
       renderPlayerDetectionsList();
       renderTimelineMarkers();
 
-      // Same video already loaded? Jump straight to timestamp!
       if (videoEl.dataset.videoId === String(videoId) && videoEl.readyState >= 1) {
         loadingEl.classList.add("hidden");
         seekAndPlay(state.player.pendingSeek);
@@ -771,7 +768,7 @@
       videoEl.load();
       videoEl.dataset.videoId = "";
 
-      loadingText.textContent = "Đang kiểm tra định dạng video (tự chuyển H.264 nếu là AVI/MKV)...";
+      loadingText.textContent = "Preparing stream (converting legacy AVI/MKV to H.264 if required)...";
       const prep = await api(`/api/video/${videoId}/prepare`);
 
       if (prep.missing) {
@@ -794,7 +791,7 @@
       videoEl.load();
     } catch (err) {
       loadingEl.classList.add("hidden");
-      toast("Không thể mở video: " + err.message, true);
+      toast("Unable to play video: " + err.message, true);
     }
   }
 
@@ -824,7 +821,7 @@
     document.getElementById("player-det-count").textContent = dets.length;
 
     if (dets.length === 0) {
-      list.innerHTML = `<div class="muted" style="padding: 16px;">Video này chưa ghi nhận khoảnh khắc có người.</div>`;
+      list.innerHTML = `<div class="muted" style="padding: 16px;">No person detections recorded for this video.</div>`;
       return;
     }
 
@@ -834,8 +831,8 @@
         <button class="player-det-item" data-player-det-id="${d.id}" data-player-seek="${d.timestamp_sec}">
           <img src="/snapshots/${encodeURI(d.snapshot_path)}" alt="snapshot" loading="lazy" />
           <div style="min-width:0; flex:1;">
-            <div class="text-emerald" style="font-weight:700; font-variant-numeric:tabular-nums;">⏱ ${formatTime(d.timestamp_sec)}</div>
-            <div style="font-size:12px;">${d.person_count} người · ${Math.round(d.max_confidence * 100)}%</div>
+            <div class="text-emerald" style="font-weight:700; font-variant-numeric:tabular-nums;">${formatTime(d.timestamp_sec)}</div>
+            <div style="font-size:12px;">${d.person_count} ${d.person_count === 1 ? "person" : "people"} · ${Math.round(d.max_confidence * 100)}%</div>
             <div class="muted" style="font-size:11.5px;">${formatTime(d.start_sec)} → ${formatTime(d.end_sec)}</div>
           </div>
         </button>`
@@ -854,7 +851,7 @@
     container.innerHTML = state.player.detections
       .map((d) => {
         const pct = Math.max(0, Math.min(100, (d.timestamp_sec / dur) * 100));
-        return `<div class="timeline-pin" style="left:${pct}%" title="Nhảy tới ${formatTime(d.timestamp_sec)} (${d.person_count} người)" data-pin-seek="${d.timestamp_sec}" data-pin-id="${d.id}"></div>`;
+        return `<div class="timeline-pin" style="left:${pct}%" title="Jump to ${formatTime(d.timestamp_sec)} (${d.person_count} detected)" data-pin-seek="${d.timestamp_sec}" data-pin-id="${d.id}"></div>`;
       })
       .join("");
   }
@@ -890,7 +887,7 @@
         method: "POST",
         body: JSON.stringify({ new_path: picked.file_path }),
       });
-      toast("Đã cập nhật đường dẫn video thành công!");
+      toast("Video file path updated successfully!");
       const videoEl = document.getElementById("video-player");
       videoEl.dataset.videoId = "";
       await openPlayerAt(video.id, state.player.pendingSeek || 0);
@@ -898,7 +895,7 @@
         refreshHistoryAll();
       }
     } catch (err) {
-      toast("Không thể cập nhật đường dẫn: " + err.message, true);
+      toast("Unable to update video path: " + err.message, true);
     }
   }
 
@@ -906,17 +903,14 @@
   // Event Wiring
   // ------------------------------------------------------------------
   function bindEvents() {
-    // Sidebar navigation
     document.querySelectorAll(".nav-btn").forEach((btn) => {
       btn.addEventListener("click", () => switchTab(btn.dataset.tab));
     });
 
-    // History view switcher
     document.querySelectorAll(".view-tab").forEach((btn) => {
       btn.addEventListener("click", () => switchHistoryView(btn.dataset.view));
     });
 
-    // Folder input & options
     document.getElementById("btn-browse-folder").addEventListener("click", browseFolder);
     document.getElementById("folder-input").addEventListener("input", () => {
       clearTimeout(state.previewTimer);
@@ -928,7 +922,6 @@
       document.getElementById("opt-confidence-val").textContent = `${e.target.value}%`;
     });
 
-    // Scan controls
     document.getElementById("btn-start-scan").addEventListener("click", startScan);
     document.getElementById("btn-reset-scan").addEventListener("click", () => resetScanViewIfIdle(true));
     document.getElementById("btn-pause-scan").addEventListener("click", async () => {
@@ -941,7 +934,6 @@
       renderScanStatus(next);
     });
 
-    // History filters
     document.getElementById("btn-refresh-history").addEventListener("click", refreshHistoryAll);
     document.getElementById("history-session-filter").addEventListener("change", () => loadCurrentHistorySubView());
     document.getElementById("history-only-person").addEventListener("change", () => loadCurrentHistorySubView());
@@ -951,23 +943,21 @@
       searchTimer = setTimeout(() => loadCurrentHistorySubView(), 250);
     });
 
-    // Settings buttons
     document.getElementById("btn-open-data-dir").addEventListener("click", async () => {
       await api("/api/app/open-data-dir", { method: "POST" });
     });
     document.getElementById("btn-clear-history").addEventListener("click", async () => {
-      if (!confirm("Bạn có chắc chắn muốn xóa TOÀN BỘ lịch sử quét và tất cả ảnh đã chụp?")) return;
+      if (!confirm("Are you sure you want to delete ALL scan history and captured snapshots?")) return;
       try {
         await api("/api/history/all", { method: "DELETE" });
         state.selectedVideoId = null;
         await loadAppInfo();
-        toast("Đã xóa sạch toàn bộ lịch sử.");
+        toast("Cleared all scan history.");
       } catch (err) {
         toast(err.message, true);
       }
     });
 
-    // Global delegated clicks (open video at timestamp, select video, delete, crop toggle, etc.)
     document.addEventListener("click", async (e) => {
       const openBtn = e.target.closest("[data-open-video]");
       if (openBtn) {
@@ -990,7 +980,7 @@
         const showingCrop = cropBtn.dataset.showingCrop === "1";
         img.src = showingCrop ? cropBtn.dataset.full : cropBtn.dataset.crop;
         cropBtn.dataset.showingCrop = showingCrop ? "0" : "1";
-        cropBtn.textContent = showingCrop ? "Cận cảnh" : "Toàn khung";
+        cropBtn.textContent = showingCrop ? "Close-up" : "Full Frame";
         return;
       }
 
@@ -1006,12 +996,12 @@
 
       const delVidBtn = e.target.closest("[data-delete-video]");
       if (delVidBtn) {
-        if (!confirm("Xóa lịch sử và ảnh chụp của video này?")) return;
+        if (!confirm("Delete history and snapshots for this video?")) return;
         const vid = Number(delVidBtn.dataset.deleteVideo);
         await api(`/api/history/videos/${vid}`, { method: "DELETE" });
         if (state.selectedVideoId === vid) state.selectedVideoId = null;
         await refreshHistoryAll();
-        toast("Đã xóa bản ghi video.");
+        toast("Deleted video record.");
         return;
       }
 
@@ -1025,11 +1015,11 @@
 
       const delSessBtn = e.target.closest("[data-delete-session]");
       if (delSessBtn) {
-        if (!confirm("Xóa toàn bộ video và ảnh chụp thuộc lần quét này?")) return;
+        if (!confirm("Delete all video records and snapshots from this scan session?")) return;
         await api(`/api/history/sessions/${delSessBtn.dataset.deleteSession}`, { method: "DELETE" });
         state.selectedVideoId = null;
         await refreshHistoryAll();
-        toast("Đã xóa lần quét.");
+        toast("Deleted scan session.");
         return;
       }
 
@@ -1045,7 +1035,6 @@
       }
     });
 
-    // Player modal controls
     document.getElementById("btn-player-close").addEventListener("click", closePlayer);
     document.getElementById("player-backdrop").addEventListener("click", closePlayer);
     document.getElementById("btn-relocate-video").addEventListener("click", relocateMissingVideo);

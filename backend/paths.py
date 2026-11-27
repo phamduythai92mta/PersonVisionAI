@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 APP_NAME = "VideoPersonDetector"
-APP_DISPLAY_NAME = "AI Phát Hiện Người Trong Video"
+APP_DISPLAY_NAME = "PersonVision AI — Video Person Detector"
 
 
 def is_frozen() -> bool:

@@ -1,4 +1,4 @@
-"""Desktop entry point for AI Phát Hiện Người Trong Video."""
+"""Desktop entry point for PersonVision AI."""
 
 from __future__ import annotations
 
@@ -83,7 +83,7 @@ def main() -> None:
     server_thread.start()
 
     if not _wait_for_server(f"{base_url}/api/app-info"):
-        print("Không thể khởi động máy chủ nội bộ.", file=sys.stderr)
+        print("Failed to start internal local server.", file=sys.stderr)
         sys.exit(1)
 
     headless_server = os.environ.get("VPD_HEADLESS") == "1"

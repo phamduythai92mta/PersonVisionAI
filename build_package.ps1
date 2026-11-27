@@ -5,7 +5,7 @@ Set-Location $Root
 
 $PyInstaller = Join-Path $Root ".venv\Scripts\pyinstaller.exe"
 if (-not (Test-Path $PyInstaller)) {
-    throw "Khong tim thay PyInstaller tai $PyInstaller"
+    throw "PyInstaller not found at $PyInstaller"
 }
 
 $BuildStamp = Get-Date -Format "yyyyMMdd_HHmmss"
@@ -14,37 +14,37 @@ $TempDist = Join-Path $env:TEMP "vpd_pyi_dist_$BuildStamp"
 New-Item -ItemType Directory -Force -Path $TempWork, $TempDist | Out-Null
 
 try {
-    Write-Host "==> Dang dong goi ung dung portable PersonVisionAI..." -ForegroundColor Cyan
+    Write-Host "==> Packaging portable Windows executable PersonVisionAI..." -ForegroundColor Cyan
     & $PyInstaller --noconfirm --clean --workpath $TempWork --distpath $TempDist build.spec
     if ($LASTEXITCODE -ne 0) {
-        throw "PyInstaller that bai voi ma loi $LASTEXITCODE"
+        throw "PyInstaller failed with exit code $LASTEXITCODE"
     }
 
     $BuiltApp = Join-Path $TempDist "PersonVisionAI"
     if (-not (Test-Path (Join-Path $BuiltApp "PersonVisionAI.exe"))) {
-        throw "Khong tim thay PersonVisionAI.exe sau khi build!"
+        throw "PersonVisionAI.exe not found after build!"
     }
 
     New-Item -ItemType Directory -Force -Path (Join-Path $BuiltApp "data") | Out-Null
 
     $Readme = @"
-=== PERSONVISION AI - PHAT HIEN NGUOI TRONG VIDEO (BAN PORTABLE) ===
+=== PERSONVISION AI - VIDEO PERSON DETECTOR (PORTABLE EDITION) ===
 
-CACH CHAY TREN MAY KHAC:
-1. Copy toan bo thu muc "PersonVisionAI" (hoac giai nen file PersonVisionAI_Portable.zip) sang may Windows 10/11 khac.
-2. Mo thu muc va chay file: PersonVisionAI.exe
-   (Khong can cai dat Python, FFmpeg hay thu vien nao khac).
+HOW TO RUN ON ANY WINDOWS PC:
+1. Copy the entire "PersonVisionAI" folder (or extract PersonVisionAI_Portable.zip) to any Windows 10/11 PC.
+2. Open the folder and double-click: PersonVisionAI.exe
+   (No Python, OpenCV, FFmpeg, or external AI model downloads required.)
 
-LUU TRU DU LIEU & LICH SU:
-- Toan bo lich su quet va anh chup nguoi duoc luu trong thu muc "data" nam canh PersonVisionAI.exe.
-- Khi ban copy thu muc nay sang may khac, lich su va anh chup se di kem cung ung dung.
-- Neu video goc tren may moi nam o duong dan / o dia khac, trong trinh phat hay nhan "Chon lai file video..." de cap nhat vi tri moi.
+PORTABLE DATA & HISTORY:
+- Scan history (SQLite) and captured person snapshots are stored in the "data" folder next to PersonVisionAI.exe.
+- When you move the folder to another PC, your scan history and snapshots stay intact.
+- If original video files moved to a different drive or path on the new PC, click "Relocate Video File..." inside the video player to remap them automatically.
 
-YEU CAU HE THONG:
+SYSTEM REQUIREMENTS:
 - Windows 10 / Windows 11 (64-bit).
-- Ho tro WebView2 (co san tren hau het Windows 10/11; neu may cu khong co, ung dung tu dong mo bang trinh duyet Edge/Chrome).
+- Microsoft Edge WebView2 Runtime (preinstalled on most Windows 10/11 systems; falls back automatically to Edge/Chrome app mode if absent).
 "@
-    Set-Content -Path (Join-Path $BuiltApp "HUONG_DAN_SU_DUNG.txt") -Value $Readme -Encoding UTF8
+    Set-Content -Path (Join-Path $BuiltApp "USER_GUIDE.txt") -Value $Readme -Encoding UTF8
 
     $FinalDistRoot = Join-Path $Root "dist"
     New-Item -ItemType Directory -Force -Path $FinalDistRoot | Out-Null
@@ -52,32 +52,30 @@ YEU CAU HE THONG:
     if (Test-Path $ZipPath) {
         Remove-Item $ZipPath -Force
     }
-    Write-Host "==> Dang nen file ZIP de de dang chuyen sang may khac..." -ForegroundColor Cyan
+    Write-Host "==> Compressing portable distribution archive..." -ForegroundColor Cyan
     Compress-Archive -Path $BuiltApp -DestinationPath $ZipPath -CompressionLevel Optimal
 
     $FinalDistApp = Join-Path $FinalDistRoot "PersonVisionAI"
     if (-not (Test-Path $FinalDistApp)) {
         Copy-Item -Path $BuiltApp -Destination $FinalDistApp -Recurse -Force
     } else {
-        # Giu nguyen thu muc data cua nguoi dung khi cap nhat thu muc dist
         $running = Get-Process -Name "PersonVisionAI*" -ErrorAction SilentlyContinue | Where-Object {
             $_.Path -and $_.Path.StartsWith($FinalDistApp, [System.StringComparison]::OrdinalIgnoreCase)
         }
         if ($running) {
-            Write-Host "CANH BAO: PersonVisionAI.exe dang mo nen khong the ghi de truc tiep thu muc dist\PersonVisionAI." -ForegroundColor Yellow
-            Write-Host "File ZIP moi da duoc cap nhat xong tai: $ZipPath" -ForegroundColor Green
-            Write-Host "Hay dong app dang mo va chay lai script hoac giai nen file ZIP de dung ban moi nhat." -ForegroundColor Yellow
+            Write-Host "WARNING: PersonVisionAI.exe is currently running, skipping overwrite of dist\PersonVisionAI." -ForegroundColor Yellow
+            Write-Host "Updated portable ZIP is ready at: $ZipPath" -ForegroundColor Green
         } else {
             & robocopy $BuiltApp $FinalDistApp /MIR /XD data /R:2 /W:1 | Out-Null
             if ($LASTEXITCODE -ge 8) {
-                throw "Robocopy cap nhat dist that bai (code $LASTEXITCODE)"
+                throw "Robocopy dist update failed (exit code $LASTEXITCODE)"
             }
         }
     }
 
-    Write-Host "==> HOAN TAT!" -ForegroundColor Green
-    Write-Host "Thu muc chay truc tiep: $FinalDistApp"
-    Write-Host "File ZIP mang sang may khac: $ZipPath"
+    Write-Host "==> BUILD COMPLETE!" -ForegroundColor Green
+    Write-Host "Executable folder: $FinalDistApp"
+    Write-Host "Portable ZIP archive: $ZipPath"
 }
 finally {
     Remove-Item -Recurse -Force $TempWork, $TempDist -ErrorAction SilentlyContinue

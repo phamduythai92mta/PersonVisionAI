@@ -72,7 +72,7 @@ class PersonDetector:
 
     def __init__(self, model_path: Path, input_size: int = 640) -> None:
         if not model_path.is_file():
-            raise FileNotFoundError(f"Không tìm thấy model AI tại: {model_path}")
+            raise FileNotFoundError(f"AI model file not found at: {model_path}")
         self.model_path = model_path
         self.input_size = input_size
 
@@ -245,7 +245,7 @@ class PersonDetector:
                 outline=(16, 185, 129, 245),
                 width=stroke_w,
             )
-            label = f"Người {int(round(box.confidence * 100))}%"
+            label = f"Person {int(round(box.confidence * 100))}%"
             bbox = draw.textbbox((0, 0), label, font=font)
             tw = bbox[2] - bbox[0]
             th = bbox[3] - bbox[1]
@@ -266,7 +266,8 @@ class PersonDetector:
             draw.text((lx1 + pad_px, ly1 + pad_px - 1), label, font=font, fill=(236, 253, 245, 255))
 
         # Timestamp & count badge at top-left
-        ts_label = f"⏱ {format_timestamp(timestamp_sec)}  ·  {len(boxes)} người"
+        noun = "person" if len(boxes) == 1 else "people"
+        ts_label = f"{format_timestamp(timestamp_sec)}  ·  {len(boxes)} {noun}"
         tb = draw.textbbox((0, 0), ts_label, font=font)
         tw = tb[2] - tb[0]
         th = tb[3] - tb[1]
