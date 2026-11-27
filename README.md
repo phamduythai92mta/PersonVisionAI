@@ -24,6 +24,32 @@ Key user outcomes:
 
 ---
 
+## Product Demo & Screenshots
+
+<div align="center">
+  <img src="docs/media/demo.gif" alt="PersonVision AI Live Walkthrough Demo" width="100%" />
+  <p><em>End-to-end walkthrough: batch folder scanning, live detection feed, history inspection, and instant jump-to-timestamp playback.</em></p>
+  <p>Prefer full-resolution MP4? <a href="docs/media/PersonVisionAI_Demo.mp4">Watch / Download PersonVisionAI_Demo.mp4</a> (also attached to <a href="https://github.com/phamduythai92mta/PersonVisionAI/releases/tag/v1.0.0">Release v1.0.0</a>).</p>
+</div>
+
+| Folder Scan & Live Detections | History & Per-Video Timestamps |
+| :---: | :---: |
+| ![Scan Video Folder](docs/media/01_scan_live.png) | ![Scan History by Video](docs/media/02_history_videos.png) |
+
+| Snapshot Gallery | Built-in Player with Timeline Markers |
+| :---: | :---: |
+| ![Snapshot Gallery](docs/media/03_snapshot_gallery.png) | ![Theater Video Player](docs/media/04_video_player.png) |
+
+<details>
+<summary><strong>Sample AI Detection Output (YOLO11n ONNX Bounding Boxes &amp; Timestamp Badge)</strong></summary>
+<br />
+<p align="center">
+  <img src="docs/media/05_detection_snapshot.jpg" alt="Annotated Detection Snapshot" width="85%" />
+</p>
+</details>
+
+---
+
 ## System Architecture
 
 ```mermaid
